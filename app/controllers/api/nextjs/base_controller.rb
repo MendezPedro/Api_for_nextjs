@@ -12,7 +12,7 @@ class Api::Nextjs::BaseController < ApplicationController
     
     def authenticate
       authenticate_or_request_with_http_basic do |username, password|
-        username == "oshudgrfojf1234$" && password == "sldhjfsdfhj16386$"
+        username == "admin" && password == "password"
       end
     end
   end
