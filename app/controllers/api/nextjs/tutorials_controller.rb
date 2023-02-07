@@ -20,52 +20,60 @@ module Api
           results = 
             {"pages":[
               {
-                "title":"Titulo-one",
+                "title":"Titulo one",
                 "id":"1",
+                "url":"url-one",
                 "array":"",
-                "content":"##tarea one (contenido markdown)",
+                "content":"## tarea one \n (contenido markdown)",
                 "img":""
               },{
-                "title":"Titulo-two",
+                "title":"Titulo two",
                 "id":"2",
+                "url":"url-two",
                 "array":"",
-                "content":"##tarea two (contenido markdown)",
+                "content":"## tarea two \n (contenido markdown)",
                 "img":""
               },{
-                "title":"Titulo-three",
+                "title":"Titulo three",
                 "id":"3",
+                "url":"url-three",
                 "array":"",
-                "content":"##tarea three (contenido markdown)",
+                "content":"## tarea three \n (contenido markdown)",
                 "img":""
               },{
-                "title":"Titulo-four",
+                "title":"Titulo four",
                 "id":"4",
+                "url":"url-four",
                 "array":"",
-                "content":"##tarea four (contenido markdown)",
+                "content":"## tarea four \n (contenido markdown)",
                 "img":""
               },{
-                "title":"Titulo-five",
+                "title":"Titulo five",
                 "id":"5",
+                "url":"url-five",
                 "array":"",
-                "content":"##tarea five (contenido markdown)",
+                "content":"## tarea five \n (contenido markdown)",
                 "img":""
               },{
-                "title":"Titulo-six",
+                "title":"Titulo six",
                 "id":"6",
+                "url":"url-six",
                 "array":"",
-                "content":"##tarea six (contenido markdown)",
+                "content":"## tarea six \n (contenido markdown)",
                 "img":""
               },{
-                "title":"Titulo-seven",
+                "title":"Titulo seven",
                 "id":"7",
+                "url":"url-seven",
                 "array":"",
-                "content":"##tarea seven (contenido markdown)",
+                "content":"## tarea seven \n (contenido markdown)",
                 "img":""
               },{
-                "title":"Titulo-eight",
+                "title":"Titulo eight",
                 "id":"8",
+                "url":"url-eight",
                 "array":"",
-                "content":"##tarea eight (contenido markdown)",
+                "content":"## tarea eight \n (contenido markdown)",
                 "img":""
               }
             ]
