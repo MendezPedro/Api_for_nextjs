@@ -1,0 +1,147 @@
+---
+image: docker:latest
+
+services:
+  - redis:latest
+  - name: docker:19.03.13-dind
+    command: [--registry-mirror, https]
+
+before_script:
+  - apk add --update --no-cache jq py-pip
+  - pip install awscli
+  - $(aws ecr get-login --no-include-email --region us-east-1)
+  - IMAGE_TAG="$(echo $CI_COMMIT_SHA | head -c 8)"
+
+cache:
+  key: ${CI_JOB_NAME}
+  paths:
+    - vendor/ruby
+    - apt-cache
+
+stages:
+  - build-empieza
+  - deploy-empieza-jobs
+  - deploy-empieza
+  - deploy-infoclub-jobs
+  - deploy-infoclub
+build-empieza:
+  stage: build-empieza
+  script:
+    - echo $REDIS
+    - echo $REDIS_PORT_6379_TCP_ADDR
+    - docker build -t $REPOSITORY_URL:$IMAGE_TAG  --build-arg REDIS_HOST=$REDIS_PORT_6379_TCP_ADDR  .
+    - docker push $REPOSITORY_URL:$IMAGE_TAG
+
+deploy-empieza:
+  stage: deploy-empieza
+  script:
+    - echo `aws ecs describe-task-definition --task-definition $CI_AWS_ECS_TASK_DEFINITION_EMPIEZA
+      --region us-east-1` > input.json
+    - echo $(cat input.json | jq '.taskDefinition.containerDefinitions[].image="'$REPOSITORY_URL':'$IMAGE_TAG'"')
+      > input.json
+    - echo $(cat input.json | jq '.taskDefinition') > input.json
+    - echo $(cat input.json | jq 'del(.taskDefinitionArn)'| jq 'del(.revision)' |
+      jq 'del(.status)' | jq 'del(.requireAttributes)' | jq 'del(.compatibilities)')
+      > input.json
+    - echo $(cat input.json | jq 'del(.requiresAttributes)'| jq 'del(.registeredAt)'
+      | jq 'del(.registeredBy)') > input.json
+    - echo " Contenido input json"
+    - cat input.json
+    - aws ecs register-task-definition --cli-input-json file://input.json --region
+      us-east-1
+    - revision=$(aws ecs describe-task-definition --task-definition $CI_AWS_ECS_TASK_DEFINITION_EMPIEZA
+      --region us-east-1 | egrep "revision" | tr "/" " " | awk '{print $2}' | sed
+      's/"$//' | cut -d "," -f 1)
+    - aws ecs update-service --cluster $CI_AWS_ECS_CLUSTER_PRODUCTION --service $CI_AWS_ECS_SERVICE_EMPIEZA
+      --task-definition $CI_AWS_ECS_TASK_DEFINITION_EMPIEZA:$revision --region us-east-1
+
+deploy-empieza-jobs:
+  stage: deploy-empieza-jobs
+  script:
+    - echo `aws ecs describe-task-definition --task-definition $CI_AWS_ECS_TASK_DEFINITION_EMPIEZA_JOBS
+      --region us-east-1` > input.json
+    - echo $(cat input.json | jq '.taskDefinition.containerDefinitions[].image="'$REPOSITORY_URL':'$IMAGE_TAG'"')
+      > input.json
+    - echo $(cat input.json | jq '.taskDefinition') > input.json
+    - echo $(cat input.json | jq 'del(.taskDefinitionArn)'| jq 'del(.revision)' |
+      jq 'del(.status)' | jq 'del(.requireAttributes)' | jq 'del(.compatibilities)')
+      > input.json
+    - echo $(cat input.json | jq 'del(.requiresAttributes)'| jq 'del(.registeredAt)'
+      | jq 'del(.registeredBy)') > input.json
+    - echo " Contenido input json"
+    - aws ecs register-task-definition --cli-input-json file://input.json --region
+      us-east-1
+    - revision=$(aws ecs describe-task-definition --task-definition $CI_AWS_ECS_TASK_DEFINITION_EMPIEZA_JOBS  --region
+      us-east-1 | egrep "revision" | tr "/" " " | awk '{print $2}' | sed 's/"$//'
+      | cut -d "," -f 1)
+    - aws ecs update-service --cluster $CI_AWS_ECS_CLUSTER_PRODUCTION --service $CI_AWS_ECS_SERVICE_EMPIEZA_JOBS
+      --task-definition $CI_AWS_ECS_TASK_DEFINITION_EMPIEZA_JOBS:$revision --region us-east-1
+deploy-infoclub:
+  stage: deploy-infoclub
+  script:
+    - echo `aws ecs describe-task-definition --task-definition $CI_AWS_ECS_TASK_DEFINITION_INFOCLUB
+      --region us-east-1` > input.json
+    - echo $(cat input.json | jq '.taskDefinition.containerDefinitions[].image="'$REPOSITORY_URL':'$IMAGE_TAG'"')
+      > input.json
+    - echo $(cat input.json | jq '.taskDefinition') > input.json
+    - echo $(cat input.json | jq 'del(.taskDefinitionArn)'| jq 'del(.revision)' |
+      jq 'del(.status)' | jq 'del(.requireAttributes)' | jq 'del(.compatibilities)')
+      > input.json
+    - echo $(cat input.json | jq 'del(.requiresAttributes)'| jq 'del(.registeredAt)'
+      | jq 'del(.registeredBy)') > input.json
+    - echo " Contenido input json"
+    - cat input.json
+    - aws ecs register-task-definition --cli-input-json file://input.json --region
+      us-east-1
+    - revision=$(aws ecs describe-task-definition --task-definition $CI_AWS_ECS_TASK_DEFINITION_INFOCLUB
+      --region us-east-1 | egrep "revision" | tr "/" " " | awk '{print $2}' | sed
+      's/"$//' | cut -d "," -f 1)
+    - aws ecs update-service --cluster $CI_AWS_ECS_CLUSTER_PRODUCTION --service $CI_AWS_ECS_SERVICE_INFOCLUB
+      --task-definition $CI_AWS_ECS_TASK_DEFINITION_INFOCLUB:$revision --region us-east-1
+
+deploy-infoclub-jobs:
+  stage: deploy-infoclub-jobs
+  script:
+    - echo `aws ecs describe-task-definition --task-definition $CI_AWS_ECS_TASK_DEFINITION_INFOCLUB_JOBS
+      --region us-east-1` > input.json
+    - echo $(cat input.json | jq '.taskDefinition.containerDefinitions[].image="'$REPOSITORY_URL':'$IMAGE_TAG'"')
+      > input.json
+    - echo $(cat input.json | jq '.taskDefinition') > input.json
+    - echo $(cat input.json | jq 'del(.taskDefinitionArn)'| jq 'del(.revision)' |
+      jq 'del(.status)' | jq 'del(.requireAttributes)' | jq 'del(.compatibilities)')
+      > input.json
+    - echo $(cat input.json | jq 'del(.requiresAttributes)'| jq 'del(.registeredAt)'
+      | jq 'del(.registeredBy)') > input.json
+    - echo " Contenido input json"
+    - aws ecs register-task-definition --cli-input-json file://input.json --region
+      us-east-1
+    - revision=$(aws ecs describe-task-definition --task-definition $CI_AWS_ECS_TASK_DEFINITION_INFOCLUB_JOBS  --region
+      us-east-1 | egrep "revision" | tr "/" " " | awk '{print $2}' | sed 's/"$//'
+      | cut -d "," -f 1)
+    - aws ecs update-service --cluster $CI_AWS_ECS_CLUSTER_PRODUCTION --service $CI_AWS_ECS_SERVICE_INFOCLUB_JOBS
+      --task-definition $CI_AWS_ECS_TASK_DEFINITION_INFOCLUB_JOBS:$revision --region us-east-1
+
+
+
+# TODO: MEJORAR SISTEMA ASINCRONO
+# deploy-job-2:
+#   stage: deploy-jobs-piloto
+#   script:
+#     - echo `aws ecs describe-task-definition --task-definition $CI_AWS_ECS_TASK_DEFINITION_JOBS_PILOTO
+#       --region us-east-1` > input.json
+#     - echo $(cat input.json | jq '.taskDefinition.containerDefinitions[].image="'$REPOSITORY_URL':'$IMAGE_TAG'"')
+#       > input.json
+#     - echo $(cat input.json | jq '.taskDefinition') > input.json
+#     - echo $(cat input.json | jq 'del(.taskDefinitionArn)'| jq 'del(.revision)' |
+#       jq 'del(.status)' | jq 'del(.requireAttributes)' | jq 'del(.compatibilities)')
+#       > input.json
+#     - echo $(cat input.json | jq 'del(.requiresAttributes)'| jq 'del(.registeredAt)'
+#       | jq 'del(.registeredBy)') > input.json
+#     - echo " Contenido input json"
+#     - aws ecs register-task-definition --cli-input-json file://input.json --region
+#       us-east-1
+#     - revision=$(aws ecs describe-task-definition --task-definition $CI_AWS_ECS_TASK_DEFINITION_JOBS_PILOTO
+#       --region us-east-1 | egrep "revision" | tr "/" " " | awk '{print $2}' | sed
+#       's/"$//' | cut -d "," -f 1)
+#     - aws ecs update-service --cluster $CI_AWS_ECS_CLUSTER_PRODUCTION --service $CI_AWS_ECS_SERVICE_JOBS_PILOTO
+#       --task-definition $CI_AWS_ECS_TASK_DEFINITION_JOBS_PILOTO:$revision --region us-east-1

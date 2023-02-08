@@ -1,0 +1,42 @@
+version: '3.7'
+services:
+  db:
+    image: postgres:12
+    restart: always
+    # By default, a Postgres database is running on the 5432 port.
+    # If we want to access the database from our computer (outside the container),
+    # we must share the port with our computer's port.
+    # The syntax is [port we want on our machine]:[port we want to retrieve in the container]
+    # Note: You are free to change your computer's port,
+    # but take into consideration that it will change the way
+    # you are connecting to your database.
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - shared_data:/var/shared
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: username # The PostgreSQL user (useful to connect to the database)
+      POSTGRES_PASSWORD: password # The PostgreSQL password (useful to connect to the database)
+      POSTGRES_DB: default_database
+    networks:
+      - adl
+      - default
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+  empieza:
+    tty: true
+    user: '1000:1000'
+    # stdin_open: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app/
+    tmpfs:
+      - /tmp
+    ports:
+      - "3000:3000"
+
